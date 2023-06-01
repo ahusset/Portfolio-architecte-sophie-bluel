@@ -41,11 +41,22 @@ fetch('http://localhost:5678/api/works')
             return acc;
         }, []);
         // Récupérer les catégories uniques à partir des éléments de works
-        console.log(uniqueCategories);
         const allButton = document.createElement('button');
         allButton.textContent = 'Tous';
+        allButton.classList.add('active'); // Ajouter la classe "active" au bouton "Tous" au chargement de la page
         allButton.addEventListener('click', () => {
             createFigureElements(data); // Afficher toutes les catégories
+
+            // Ajouter la classe "active" au bouton "Tous"
+            const activeButton = document.querySelector('.category-buttons button.active');
+            if (activeButton) {
+                activeButton.classList.remove('active');
+            }
+            allButton.classList.add('active');
+
+            // Supprimer la classe "active" des autres boutons
+            const categoryButtons = document.querySelectorAll('.category-buttons button:not(:first-child)');
+            categoryButtons.forEach(button => button.classList.remove('active'));
         });
         document.querySelector('.category-buttons').appendChild(allButton);
 
@@ -55,9 +66,22 @@ fetch('http://localhost:5678/api/works')
             button.addEventListener('click', () => {
                 const filteredData = filterDataByCategoryId(data, category.id);
                 createFigureElements(filteredData); // Afficher les éléments filtrés par catégorie
+
+                // Ajouter la classe "active" au bouton sélectionné
+                const activeButton = document.querySelector('.category-buttons button.active');
+                if (activeButton) {
+                    activeButton.classList.remove('active');
+                }
+                button.classList.add('active');
+
+                // Supprimer la classe "active" du bouton "Tous"
+                allButton.classList.remove('active');
             });
             document.querySelector('.category-buttons').appendChild(button);
         });
+
+        // Afficher tous les éléments au chargement de la page
+        createFigureElements(data);
     })
     .catch(error => {
         console.error('Une erreur s\'est produite lors de la récupération des éléments :', error);
