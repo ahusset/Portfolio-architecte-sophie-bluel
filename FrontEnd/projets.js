@@ -1,6 +1,7 @@
+// Cette fonction crée les éléments HTML pour afficher les photos dans la galerie
 function createFigureElements(data) {
     const galleryContainer = document.querySelector('.gallery');
-    galleryContainer.innerHTML = ''; // Effacer le contenu précédent
+    galleryContainer.innerHTML = '';
 
     data.forEach(element => {
         const imageElement = document.createElement('img');
@@ -18,58 +19,55 @@ function createFigureElements(data) {
     });
 }
 
+// Cette fonction filtre les données en fonction de l'identifiant de catégorie
 function filterDataByCategoryId(data, categoryId) {
     if (categoryId === 0) {
-        return data; // Renvoyer toutes les données si la catégorie est égale à 0
+        return data;
     } else {
         return data.filter(element => element.category.id === categoryId);
     }
 }
 
-
-// fonction permettant de créer des balises et d'ajouter le texte modifier lorsque l'on est log
-function createBalise(balise, classs, text) {
+// Cette fonction crée une balise HTML avec une classe et un texte (optionnels)
+function createBalise(balise, className, text) {
     const newBalise = document.createElement(balise);
-    if (classs === undefined && text === undefined) {
-        return newBalise;
-    } else if (classs !== undefined && text !== undefined) {
-        newBalise.classList.add(classs);
-        newBalise.textContent = text;
-        return newBalise;
-    } else if (classs !== undefined && text === undefined) {
-        newBalise.classList.add(classs);
-        return newBalise;
-    } else if (text !== undefined && classs === undefined) {
-        newBalise.textContent = text;
-        return newBalise;
-    } else {
-        return newBalise;
-    }
-}
-async function addModifierText(div) {
-    if (div === undefined) {
-        return;
-    } else {
-        //create penToSquareBlack
-        penToSquare = await createBalise("i"),
-            penToSquare.classList.add("fa-regular", "fa-pen-to-square", "pen_to_square_black")
-        div.appendChild(penToSquare);
 
-        //create text modifier
-        const modifierTxt = await createBalise("p", undefined, "modifier");
-        div.appendChild(modifierTxt);
+    if (className !== undefined) {
+        newBalise.classList.add(className);
     }
+
+    if (text !== undefined) {
+        newBalise.textContent = text;
+    }
+
+    return newBalise;
 }
-//function qui permet d'inserer un element a la fin d'un element
+
+// Cette fonction ajoute un texte "modifier" et une icône d'édition à un élément
+async function addModifierText(div) {
+    if (!div) {
+        return;
+    }
+
+    const penToSquare = await createBalise("i");
+    penToSquare.classList.add("fa-regular", "fa-pen-to-square", "pen_to_square_black");
+    div.appendChild(penToSquare);
+
+    const modifierTxt = await createBalise("p", undefined, "modifier");
+    div.appendChild(modifierTxt);
+}
+
+// Cette fonction insère un nouvel élément après un élément existant
 function insertAfter(newNode, existingNode) {
     existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
 }
 
+// Cette fonction récupère les éléments de la galerie en effectuant une requête HTTP
 function fetchElements() {
-// Appel à fetch pour récupérer les éléments
     fetch('http://localhost:5678/api/works')
         .then(response => response.json())
         .then(data => {
+            // Obtenir les catégories uniques à partir des données
             const uniqueCategories = data.reduce((acc, element) => {
                 const categoryId = element.category.id;
                 const existingCategory = acc.find(category => category.id === categoryId);
@@ -80,72 +78,73 @@ function fetchElements() {
 
                 return acc;
             }, []);
-            // Récupérer les catégories uniques à partir des éléments de works
+
+            // Créer le bouton "Tous" pour afficher toutes les catégories
             const allButton = document.createElement('button');
             allButton.textContent = 'Tous';
-            allButton.classList.add('active'); // Ajouter la classe "active" au bouton "Tous" au chargement de la page
+            allButton.classList.add('active');
             allButton.addEventListener('click', () => {
-                createFigureElements(data); // Afficher toutes les catégories
+                createFigureElements(data);
 
-                // Ajouter la classe "active" au bouton "Tous"
                 const activeButton = document.querySelector('.category-buttons button.active');
                 if (activeButton) {
                     activeButton.classList.remove('active');
                 }
                 allButton.classList.add('active');
 
-                // Supprimer la classe "active" des autres boutons
                 const categoryButtons = document.querySelectorAll('.category-buttons button:not(:first-child)');
                 categoryButtons.forEach(button => button.classList.remove('active'));
             });
             document.querySelector('.category-buttons').appendChild(allButton);
 
+            // Créer les boutons pour chaque catégorie unique
             uniqueCategories.forEach(category => {
                 const button = document.createElement('button');
                 button.textContent = category.name;
                 button.addEventListener('click', () => {
                     const filteredData = filterDataByCategoryId(data, category.id);
-                    createFigureElements(filteredData); // Afficher les éléments filtrés par catégorie
+                    createFigureElements(filteredData);
 
-                    // Ajouter la classe "active" au bouton sélectionné
                     const activeButton = document.querySelector('.category-buttons button.active');
                     if (activeButton) {
                         activeButton.classList.remove('active');
                     }
                     button.classList.add('active');
 
-                    // Supprimer la classe "active" du bouton "Tous"
                     allButton.classList.remove('active');
                 });
                 document.querySelector('.category-buttons').appendChild(button);
             });
 
-            // Afficher tous les éléments au chargement de la page
+            // Afficher les éléments de la galerie
             createFigureElements(data);
         })
         .catch(error => {
-            console.error('Une erreur s\'est produite lors de la récupération des éléments :', error);
+            console.error('An error occurred while fetching elements:', error);
         });
 }
 
+// Cette fonction active le mode d'édition
 async function editMode() {
-
     const body = document.querySelector("body");
     const divBanner = await createBalise("div", "div_banner");
+
     const penToSquareWhite = await createBalise("i");
     penToSquareWhite.classList.add("fa-regular", "fa-pen-to-square", "pen_to_square_white");
+
     const modeEditionText = await createBalise("p", "mode_edition_text", "Mode édition");
+
     const modeEditionButton = await createBalise("button", "mode_edition_button");
     const buttonText = await createBalise("p", "button_text", "publier le changements");
+
     const divModeEdition = await createBalise("div", "div_mode_edition");
 
-    body.before(divBanner);
+    body.insertAdjacentElement("beforebegin", divBanner);
     divBanner.appendChild(divModeEdition);
     divModeEdition.appendChild(penToSquareWhite);
     divModeEdition.appendChild(modeEditionText);
     divBanner.appendChild(modeEditionButton);
     modeEditionButton.appendChild(buttonText);
-
 
     const imagePrincipale = document.querySelector("#introduction > figure");
     const divImagePrincipale = await createBalise("div", "div_image_principale");
@@ -161,9 +160,11 @@ async function editMode() {
     divTitleMesProjects.appendChild(buttonOpenModal);
     await addModifierText(buttonOpenModal);
 }
+
+// Cette fonction crée le modal pour afficher la galerie de photos
 async function createModal() {
-    //initialisation de toutes les balises destiné a la modal
     const modal = document.querySelector(".modal");
+
     const divModal = await createBalise("div", "div_modal");
     const divPhoto = await createBalise("div", "div_photo");
     const buttonTopModal = await createBalise("button", "button_top_modal");
@@ -171,64 +172,63 @@ async function createModal() {
     const iconButtonTop = await createBalise("i");
     iconButtonTop.classList.add("fa-solid", "fa-xmark");
     const buttonAddPhoto = await createBalise("button", "button_add_photo", "Ajouter une photo");
- //   buttonAddPhoto.classList.add("button_color_green");
     const deleteAllGallery = await createBalise("a", "delete_all_galery", "Supprimer la galerie");
     const contenuModal = await createBalise("div", "contenu_modal");
     const divFooterModal = await createBalise("div", "div_footer_modal");
     const divButtonTopModal = await createBalise("div", "div_button_top_modal");
     const divTitleModal = await createBalise("div", "div_title_modal");
 
-
-    modal.appendChild(contenuModal);
-    contenuModal.appendChild(divModal);
-    contenuModal.appendChild(divPhoto);
-    divModal.appendChild(divButtonTopModal);
     divButtonTopModal.appendChild(buttonTopModal);
     buttonTopModal.appendChild(iconButtonTop);
-    divModal.appendChild(divTitleModal);
+
     divTitleModal.appendChild(titreModal);
-    insertAfter(divFooterModal, contenuModal.lastElementChild);
+
     divFooterModal.appendChild(buttonAddPhoto);
     divFooterModal.appendChild(deleteAllGallery);
 
+    divModal.appendChild(divButtonTopModal);
+    divModal.appendChild(divTitleModal);
+
+    contenuModal.appendChild(divModal);
+    contenuModal.appendChild(divPhoto);
+    contenuModal.appendChild(divFooterModal);
+
+    modal.appendChild(contenuModal);
+
     printWorksModal();
 }
+
+// Cette fonction affiche les travaux (photos) dans le modal de la galerie
 async function printWorksModal() {
-    const removeModalPhoto = document.querySelector(".modal_photo");
-    while (removeModalPhoto) {
-        const removeModalPhoto = document.querySelector(".modal_photo");
-            removeModalPhoto.remove();
-    }
-
-    myFetch = await fetch("http://localhost:5678/api/works");
-    myFetch = await myFetch.json();
-
     const divPhoto = document.querySelector(".div_photo");
 
-    for (let i = 0; i < myFetch.length; i++) {
-        //création des balises destinées aux works
+    const response = await fetch("http://localhost:5678/api/works");
+    const myFetch = await response.json();
+
+    divPhoto.innerHTML = '';
+
+    for (const work of myFetch) {
         const textEditer = await createBalise("p", "text_editer", "éditer");
         const trashCanIcone = await createBalise("i");
         trashCanIcone.classList.add("fa-solid", "fa-trash-can", "fa-xs");
         const buttonTrash = await createBalise("button", "button_trash");
         const worksModalImage = await createBalise("img");
-        worksModalImage.src = myFetch[i].imageUrl;
+        worksModalImage.src = work.imageUrl;
         const modalPhoto = await createBalise("div", "modal_photo");
         const divTrashCan = await createBalise("div", "div_trash_can");
         const divIconeMove = createBalise("div", "div_icone_move");
         const iconeMove = createBalise("i", "icone_move");
         iconeMove.classList.add("fa-solid", "fa-up-down-left-right");
 
-        buttonTrash.setAttribute("id", myFetch[i].id);
+        buttonTrash.setAttribute("id", work.id);
 
-        await modalPhoto.appendChild(worksModalImage);
-        await modalPhoto.appendChild(textEditer);
-        await divPhoto.appendChild(modalPhoto);
-        await modalPhoto.appendChild(divTrashCan);
-        await divTrashCan.appendChild(buttonTrash);
-        await buttonTrash.appendChild(trashCanIcone);
-        await divTrashCan.before(divIconeMove);
-        await divIconeMove.appendChild(iconeMove);
+        modalPhoto.appendChild(worksModalImage);
+        modalPhoto.appendChild(textEditer);
+        modalPhoto.appendChild(divTrashCan);
+        divTrashCan.appendChild(buttonTrash);
+        buttonTrash.appendChild(trashCanIcone);
+        divTrashCan.before(divIconeMove);
+        divIconeMove.appendChild(iconeMove);
 
         divIconeMove.style.visibility = "hidden";
 
@@ -242,149 +242,172 @@ async function printWorksModal() {
 
         buttonTrash.onclick = function () {
             buttonDeleteOneWork(buttonTrash, modalPhoto);
-        }
+        };
+
+        divPhoto.appendChild(modalPhoto);
     }
 }
 
+// Cette fonction ajoute le modal pour ajouter une photo à la galerie
 async function addPhotoGallery() {
     const divModalAddPhoto = document.querySelector(".modal_add_photo");
+
     const buttonArrowLeft = await createBalise("button", "button_arrow_left");
     const arrowLeftIcon = await createBalise("i");
     arrowLeftIcon.classList.add("fa-solid", "fa-arrow-left");
+
     const titleModalAddPhoto = await createBalise("h3", "title_modal", "Ajout photo");
+
     const buttonTopModal = await createBalise("button", "button_top");
     const iconButtonTop = await createBalise("i");
     iconButtonTop.classList.add("fa-solid", "fa-xmark");
+
     const divAddPhoto = await createBalise("div", "div_add_photo");
     const iconPicture = await createBalise("i");
     iconPicture.classList.add("fa-regular", "fa-image");
+
     const buttonAddPhoto = await createBalise("button");
     buttonAddPhoto.classList.add("button_add_photo", "button_add_photo_modal");
     const textMaxMo = await createBalise("p", "text_max_mo", "jpg.png : 4mo max");
+
     const divForm = await createBalise("div", "div_form");
     const form = await createBalise("form", "form");
+
     const formLabelTitre = await createBalise("label", "form_label_titre", "Titre");
     const formInputTitre = await createBalise("input", "form_input_titre");
+
     const formLabelCategorie = await createBalise("label", "form_label_categorie", "Catégorie");
     const formSelectCategorie = await createBalise("select", "form_select_categorie");
+
     const formButtonValider = await createBalise("button", "form_button_valider", "Valider");
+
     const divTopModalAddPhoto = await createBalise("div", "div_top_add_photo");
     const divBottomModalAddPhoto = await createBalise("div", "div_bottom_add_photo");
+
     const contenuModal = await createBalise("div", "contenu_modal");
     const divTitle = await createBalise("div", "div_title");
+
     const inputImageFile = await createBalise("input", "input_image_file");
     inputImageFile.setAttribute("type", "file");
     inputImageFile.setAttribute("accept", ".jpg, .jpeg, .png");
-    inputImageFile.setAttribute = ("hidden");
     inputImageFile.hidden = true;
+
     const labelButtonAddPhoto = await createBalise("label", "label_button_add_photo", "+ Ajouter photo");
+
     const divFormLabelTitre = await createBalise("div", "div_form_label_titre");
     const divFormSelectCategorie = await createBalise("div", "div_form_select_categorie");
+
     const outputImage = await createBalise("output", "output_image");
 
-    await divModalAddPhoto.appendChild(contenuModal);
-    await contenuModal.appendChild(divTopModalAddPhoto);
-    await divTopModalAddPhoto.appendChild(buttonArrowLeft);
-    await buttonArrowLeft.appendChild(arrowLeftIcon);
-    await contenuModal.appendChild(divTitle);
-    await divTitle.appendChild(titleModalAddPhoto);
-    await divTopModalAddPhoto.appendChild(buttonTopModal);
-    await buttonTopModal.appendChild(iconButtonTop);
-    await contenuModal.appendChild(divAddPhoto);
-    await divAddPhoto.appendChild(outputImage);
-    await divAddPhoto.appendChild(iconPicture);
-    await divAddPhoto.appendChild(buttonAddPhoto);
-    await buttonAddPhoto.appendChild(labelButtonAddPhoto);
-    await labelButtonAddPhoto.appendChild(inputImageFile);
-    await divAddPhoto.appendChild(textMaxMo);
-    await contenuModal.appendChild(divForm);
-    await divForm.appendChild(form);
-    await form.appendChild(divFormLabelTitre);
-    await divFormLabelTitre.appendChild(formLabelTitre);
-    await divFormLabelTitre.appendChild(formInputTitre);
-    await form.appendChild(divFormSelectCategorie);
-    await divFormSelectCategorie.appendChild(formLabelCategorie);
-    await divFormSelectCategorie.appendChild(formSelectCategorie);
-    await divForm.appendChild(divBottomModalAddPhoto);
-    await divBottomModalAddPhoto.appendChild(formButtonValider);
+    divModalAddPhoto.innerHTML = '';
+
+    divModalAddPhoto.appendChild(contenuModal);
+    contenuModal.appendChild(divTopModalAddPhoto);
+    divTopModalAddPhoto.appendChild(buttonArrowLeft);
+    buttonArrowLeft.appendChild(arrowLeftIcon);
+
+    contenuModal.appendChild(divTitle);
+    divTitle.appendChild(titleModalAddPhoto);
+
+    divTopModalAddPhoto.appendChild(buttonTopModal);
+    buttonTopModal.appendChild(iconButtonTop);
+
+    contenuModal.appendChild(divAddPhoto);
+    divAddPhoto.appendChild(outputImage);
+    divAddPhoto.appendChild(iconPicture);
+    divAddPhoto.appendChild(buttonAddPhoto);
+    buttonAddPhoto.appendChild(labelButtonAddPhoto);
+    labelButtonAddPhoto.appendChild(inputImageFile);
+    divAddPhoto.appendChild(textMaxMo);
+
+    contenuModal.appendChild(divForm);
+    divForm.appendChild(form);
+    form.appendChild(divFormLabelTitre);
+    divFormLabelTitre.appendChild(formLabelTitre);
+    divFormLabelTitre.appendChild(formInputTitre);
+    form.appendChild(divFormSelectCategorie);
+    divFormSelectCategorie.appendChild(formLabelCategorie);
+    divFormSelectCategorie.appendChild(formSelectCategorie);
+    divForm.appendChild(divBottomModalAddPhoto);
+    divBottomModalAddPhoto.appendChild(formButtonValider);
 
     printCategories(formSelectCategorie);
 }
 
-
+// Cette fonction affiche les catégories dans le formulaire de sélection
 async function printCategories(formSelectCategorie) {
+    const response = await fetch("http://localhost:5678/api/categories");
+    const categories = await response.json();
 
-    myFetch = await fetch("http://localhost:5678/api/categories");
-    myFetch = await myFetch.json();
+    for (const category of categories) {
+        const optionSelect = await createBalise("option", "option_select", category.name);
+        optionSelect.setAttribute("id", category.id);
 
-    for (let index = 0; index < myFetch.length; index++) {
-        if (index === 0) {
-            const optionSelectDisabled = await createBalise("option", "option_defaut", "");
-            optionSelectDisabled.setAttribute("value", "disabled");
-            optionSelectDisabled.setAttribute("id", "0");
-
-            await formSelectCategorie.appendChild(optionSelectDisabled);
-        }
-        const optionSelect = await createBalise("option", "option_select", myFetch[index].name);
-        optionSelect.setAttribute("id", myFetch[index].id);
-
-        await formSelectCategorie.appendChild(optionSelect);
+        formSelectCategorie.appendChild(optionSelect);
     }
+
+    const optionSelectDisabled = await createBalise("option", "option_defaut", "");
+    optionSelectDisabled.setAttribute("value", "disabled");
+    optionSelectDisabled.setAttribute("id", "0");
+
+    formSelectCategorie.prepend(optionSelectDisabled);
 }
 
+// Cette fonction ouvre le modal de la galerie
 async function openModal() {
     const modalGalery = document.getElementsByClassName("modal")[0];
     const buttonOpenModal = document.getElementsByClassName("button_create_modal")[0];
 
     buttonOpenModal.onclick = function () {
         modalGalery.style.display = "flex";
-    }
+    };
 }
 
-async function closeModal() {
-    const modalGalery = document.querySelector(".modal");
+// Cette fonction ferme les modals de la galerie et de l'ajout de photo
+function closeModal() {
+    const modalGallery = document.querySelector(".modal");
     const modalAddPhoto = document.querySelector(".modal_add_photo");
-    const buttonCloseGalery = document.getElementsByClassName("button_top_modal")[0];
+    const buttonCloseGallery = document.getElementsByClassName("button_top_modal")[0];
     const buttonCloseModal = document.getElementsByClassName("button_top")[0];
     const arrowLeft = document.querySelector(".button_arrow_left");
 
+    const closeModals = () => {
+        modalGallery.style.display = "none";
+        modalAddPhoto.style.display = "none";
+        resetModalAddPhoto();
+    };
+
     window.onclick = function (event) {
-        if (event.target == modalGalery || event.target == modalAddPhoto) {
-            modalGalery.style.display = "none";
-            modalAddPhoto.style.display = "none";
-            resetModalAddPhoto();
+        if (event.target == modalGallery || event.target == modalAddPhoto) {
+            closeModals();
         }
-    }
+    };
 
-    buttonCloseGalery.onclick = function () {
-        modalGalery.style.display = "none";
-        modalAddPhoto.style.display = "none";
-        resetModalAddPhoto();
-
-    }
-
-    buttonCloseModal.onclick = function () {
-        modalAddPhoto.style.display = "none";
-        modalGalery.style.display = "none";
-        resetModalAddPhoto();
-
-    }
+    buttonCloseGallery.onclick = closeModals;
+    buttonCloseModal.onclick = closeModals;
 
     arrowLeft.onclick = function () {
         modalAddPhoto.style.display = "none";
-        modalGalery.style.display = "flex";
+        modalGallery.style.display = "flex";
         resetModalAddPhoto();
-    }
+    };
 }
+
+// Cette fonction réinitialise le formulaire d'ajout de photo
 function resetModalAddPhoto() {
     const modalAddPhoto = document.querySelector(".modal_add_photo");
     const image = document.querySelector(".input_image_file");
     const title = document.querySelector(".form_input_titre");
-    var categorie = document.querySelector(".form_select_categorie");
-    const iconeImage = document.getElementsByClassName("fa-image")[0];
-    const buttonAddPhotoModal = document.getElementsByClassName("button_add_photo_modal")[0];
-    const textMaxMo = document.getElementsByClassName("text_max_mo")[0];
-    const divAddPhoto = document.getElementsByClassName("div_add_photo")[0]
+    const categorie = document.querySelector(".form_select_categorie");
+    const iconeImage = document.querySelector(".fa-image");
+    const buttonAddPhotoModal = document.querySelector(".button_add_photo_modal");
+    const textMaxMo = document.querySelector(".text_max_mo");
+    const divAddPhoto = document.querySelector(".div_add_photo");
+
+    const imagePrint = document.querySelector(".image");
+    if (imagePrint) {
+        imagePrint.parentElement.remove();
+    }
 
     modalAddPhoto.style.display = "none";
     title.value = "";
@@ -394,51 +417,49 @@ function resetModalAddPhoto() {
     buttonAddPhotoModal.style.display = "flex";
     textMaxMo.style.display = "flex";
     divAddPhoto.style.padding = "30px";
-    const imagePrint = document.querySelector(".image");
-    if (imagePrint) {
-        document.querySelector(".div_image").remove();
-    }
+
     location.reload();
 }
 
+// Cette fonction lit l'image sélectionnée par l'utilisateur
 function readImage() {
     const input = document.querySelector("input");
     const output = document.querySelector("output");
-    const iconeImage = document.getElementsByClassName("fa-image")[0];
-    const buttonAddPhotoModal = document.getElementsByClassName("button_add_photo_modal")[0];
-    const textMaxMo = document.getElementsByClassName("text_max_mo")[0];
-    const divAddPhoto = document.getElementsByClassName("div_add_photo")[0]
-
-
+    const iconeImage = document.querySelector(".fa-image");
+    const buttonAddPhotoModal = document.querySelector(".button_add_photo_modal");
+    const textMaxMo = document.querySelector(".text_max_mo");
+    const divAddPhoto = document.querySelector(".div_add_photo");
 
     input.addEventListener("change", () => {
-        //Vérification que l'image ne fais pas plus de 4 Mo
+        // Vérification que l'image n'est pas supérieure à 4 Mo
         if (input.files && input.files[0]) {
             const file = input.files[0];
-            const maxFileSize = 4194304; // 4 Mo en octets
+            const maxFileSize = 4 * 1024 * 1024; // 4 Mo en octets
             if (file.size > maxFileSize) {
-                alert('Le fichier sélectionné est trop volumineux. Veuillez choisir un fichier de moins de 4 Mo.');
-                input.value = '';
+                alert("Le fichier sélectionné est trop volumineux. Veuillez choisir un fichier de moins de 4 Mo.");
+                input.value = "";
                 return;
             }
         }
 
-        const file = input.files
+        const file = input.files[0];
         const divImage = createBalise("div", "div_image");
         const image = createBalise("img", "image");
 
-        image.src = URL.createObjectURL(file[0]);
+        image.src = URL.createObjectURL(file);
         image.width = 129;
         image.height = 193;
         iconeImage.style.display = "none";
         buttonAddPhotoModal.style.display = "none";
         textMaxMo.style.display = "none";
-        divAddPhoto.style.padding = 0;
+        divAddPhoto.style.padding = "0";
 
         output.appendChild(divImage);
         divImage.appendChild(image);
-    })
+    });
 }
+
+// Cette fonction envoie les données de l'image sélectionnée au serveur
 function postImage() {
     const input = document.querySelector("input");
     const select = document.querySelector("select");
@@ -454,6 +475,8 @@ function postImage() {
         callTest();
     });
 }
+
+// Cette fonction vérifie si tous les champs sont remplis pour activer le bouton de validation
 function callTest() {
     const image = document.querySelector(".image");
     const title = document.querySelector(".form_input_titre");
@@ -467,32 +490,32 @@ function callTest() {
     }
 }
 
+// Cette fonction active les différents éléments de la galerie et de l'ajout de photo
 function activate() {
     const modalAddPhoto = document.querySelector(".modal_add_photo");
-    const buttonModalAddPhoto = document.getElementsByClassName("button_add_photo")[0];
+    const buttonModalAddPhoto = document.querySelector(".button_add_photo");
     const modalGalery = document.querySelector(".modal");
     const formButtonValider = document.querySelector(".form_button_valider");
     const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4 Mo en octets
 
-    buttonModalAddPhoto.onclick = function () {
+    buttonModalAddPhoto.addEventListener("click", () => {
         modalAddPhoto.style.display = "flex";
         modalGalery.style.display = "none";
-    }
+    });
 
-    formButtonValider.onclick = function () {
+    formButtonValider.addEventListener("click", () => {
         const image = document.querySelector(".input_image_file");
         const title = document.querySelector(".form_input_titre");
-        var categorie = document.querySelector(".form_select_categorie");
+        const categorie = document.querySelector(".form_select_categorie");
 
-        console.log("image.size = %s", image.fileSize);
+        console.log("image.size =", image.files[0].size);
         // Vérification que le fichier est inférieur à 4 Mo
-        if (image.size > MAX_IMAGE_SIZE) {
-            console.log('La taille de l\'image dépasse la limite de 4 Mo');
+        if (image.files[0].size > MAX_IMAGE_SIZE) {
+            console.log("La taille de l'image dépasse la limite de 4 Mo");
             return;
         }
 
-        idNumber = categorie.selectedIndex;
-
+        const idNumber = categorie.selectedIndex;
         const categorieId = categorie.options[idNumber].id;
 
         const sendWork = new FormData();
@@ -500,33 +523,30 @@ function activate() {
         sendWork.append("title", title.value);
         sendWork.append("category", categorieId);
 
-
-        //envoie d'un Work (photo pour la galerie)
-        const myFetch = fetch('http://localhost:5678/api/works', {
+        // Envoi d'une œuvre (photo pour la galerie)
+        fetch("http://localhost:5678/api/works", {
             method: "POST",
-            headers:
-                {
-                    Authorization: `Bearer ${window.localStorage.getItem("token")}`,
-                },
+            headers: {
+                Authorization: `Bearer ${window.localStorage.getItem("token")}`,
+            },
             body: sendWork,
         })
+            .then(function (response) {
+                // Réinitialiser le formulaire d'ajout de photo
+                if (response.ok) {
+                    console.log("Envoyé");
+                    resetModalAddPhoto();
+                    printWorksModal();
+                } else {
+                    console.log("Non envoyé");
+                }
+            });
+    });
 
-        myFetch.then(function (response) {
-            //Reset la modal add photo
-            if (response.ok) {
-                console.log("Send");
-                resetModalAddPhoto();
-                printWorksModal();
-            } else {
-                console.log("Not Send");
-            }
-        });
-    }
-
-    console.log("modalGalery.style.display == %s", modalGalery.style.display);
-    if (modalGalery.style.display == "none") {
+    console.log("modalGalery.style.display =", modalGalery.style.display);
+    if (modalGalery.style.display === "none") {
         console.log("display != none");
-        const modalPhoto = document.querySelector("modal_photo");
+        const modalPhoto = document.querySelector(".modal_photo");
 
         modalPhoto.addEventListener("mouseover", function (event) {
             console.log("hover");
@@ -535,15 +555,17 @@ function activate() {
     button_logout_press();
 }
 
+// Cette fonction gère le bouton de déconnexion
 function button_logout_press() {
     const button_logout = document.getElementById("id_login");
 
     button_logout.onclick = function () {
         window.localStorage.removeItem("token");
         location.replace("index.html");
-    }
+    };
 }
 
+// Cette fonction supprime une œuvre de la galerie lors du clic sur le bouton de suppression correspondant
 function buttonDeleteOneWork(buttonDelete, modalPhoto) {
     modalPhoto.remove();
 
@@ -562,16 +584,16 @@ function buttonDeleteOneWork(buttonDelete, modalPhoto) {
     });
 }
 
-
-async function main(){
+// Fonction principale
+async function main() {
     fetchElements();
 
-    document.addEventListener("DOMContentLoaded", async function() {
+    document.addEventListener("DOMContentLoaded", async function () {
         if (window.localStorage.getItem("token")) {
             // Si le token est présent
             var loginElement = document.querySelector('a[href="login.html"]');
             if (loginElement) {
-                loginElement.textContent = "log out";
+                loginElement.textContent = "Déconnexion";
             }
             // Appeler la fonction editMode
             await editMode();
@@ -582,9 +604,8 @@ async function main(){
             readImage();
             postImage();
             activate();
-
         }
     });
-
 }
+
 main();
