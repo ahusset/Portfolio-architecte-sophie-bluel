@@ -27,41 +27,6 @@ function filterDataByCategoryId(data, categoryId) {
         return data.filter(element => element.category.id === categoryId);
     }
 }
-
-// Cette fonction crée une balise HTML avec une classe et un texte (optionnels)
-function createBalise(balise, className, text) {
-    const newBalise = document.createElement(balise);
-
-    if (className !== undefined) {
-        newBalise.classList.add(className);
-    }
-
-    if (text !== undefined) {
-        newBalise.textContent = text;
-    }
-
-    return newBalise;
-}
-
-// Cette fonction ajoute un texte "modifier" et une icône d'édition à un élément
-async function addModifierText(div) {
-    if (!div) {
-        return;
-    }
-
-    const penToSquare = await createBalise("i");
-    penToSquare.classList.add("fa-regular", "fa-pen-to-square", "pen_to_square_black");
-    div.appendChild(penToSquare);
-
-    const modifierTxt = await createBalise("p", undefined, "modifier");
-    div.appendChild(modifierTxt);
-}
-
-// Cette fonction insère un nouvel élément après un élément existant
-function insertAfter(newNode, existingNode) {
-    existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
-}
-
 // Cette fonction récupère les éléments de la galerie en effectuant une requête HTTP
 function fetchElements() {
     fetch('http://localhost:5678/api/works')
@@ -78,7 +43,8 @@ function fetchElements() {
 
                 return acc;
             }, []);
-
+            const filterContainer = document.querySelector('.category-buttons');
+            filterContainer.innerHTML = '';
             // Créer le bouton "Tous" pour afficher toutes les catégories
             const allButton = document.createElement('button');
             allButton.textContent = 'Tous';
@@ -123,6 +89,42 @@ function fetchElements() {
             console.error('An error occurred while fetching elements:', error);
         });
 }
+
+
+// Cette fonction crée une balise HTML avec une classe et un texte (optionnels)
+function createBalise(balise, className, text) {
+    const newBalise = document.createElement(balise);
+
+    if (className !== undefined) {
+        newBalise.classList.add(className);
+    }
+
+    if (text !== undefined) {
+        newBalise.textContent = text;
+    }
+
+    return newBalise;
+}
+
+// Cette fonction ajoute un texte "modifier" et une icône d'édition à un élément
+async function addModifierText(div) {
+    if (!div) {
+        return;
+    }
+
+    const penToSquare = await createBalise("i");
+    penToSquare.classList.add("fa-regular", "fa-pen-to-square", "pen_to_square_black");
+    div.appendChild(penToSquare);
+
+    const modifierTxt = await createBalise("p", undefined, "modifier");
+    div.appendChild(modifierTxt);
+}
+
+// Cette fonction insère un nouvel élément après un élément existant
+function insertAfter(newNode, existingNode) {
+    existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
+}
+
 
 // Cette fonction active le mode d'édition
 async function editMode() {
@@ -417,8 +419,7 @@ function resetModalAddPhoto() {
     buttonAddPhotoModal.style.display = "flex";
     textMaxMo.style.display = "flex";
     divAddPhoto.style.padding = "30px";
-
-    location.reload();
+    fetchElements();
 }
 
 // Cette fonction lit l'image sélectionnée par l'utilisateur
@@ -593,7 +594,7 @@ async function main() {
             // Si le token est présent
             var loginElement = document.querySelector('a[href="login.html"]');
             if (loginElement) {
-                loginElement.textContent = "Déconnexion";
+                loginElement.textContent = "Log out";
             }
             // Appeler la fonction editMode
             await editMode();
